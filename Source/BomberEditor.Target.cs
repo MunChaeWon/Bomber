@@ -10,6 +10,6 @@ public class BomberEditorTarget : TargetRules
         IncludeOrderVersion = EngineIncludeOrderVersion.Latest;
         DefaultBuildSettings = BuildSettingsVersion.Latest;
         bBuildAllModules = true;
-        ExtraModuleNames.AddRange(new[] {"Bomber", "BomberEditor"});
+        ExtraModuleNames.AddRange(new[] {"Bomber", "BomberEditor", "BomberTests"});
     }
 }
