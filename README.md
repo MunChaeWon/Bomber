@@ -1,228 +1,127 @@
-<a href="https://github.com/JanSeliv/Bomber/blob/main/LICENSE">![License](https://img.shields.io/badge/license-MIT-brightgreen.svg)</a>
-<a href="https://www.unrealengine.com/">![Unreal Engine](https://img.shields.io/badge/Unreal-5.7-dea309?style=flat&logo=unrealengine)</a>
-![Windows](https://img.shields.io/badge/Windows-0078D6?style=flat&logo=windows&logoColor=white)
-![macOS](https://img.shields.io/badge/macOS-000000?style=flat&logo=apple&logoColor=white)
-![Linux](https://img.shields.io/badge/Linux-FCC624?style=flat&logo=linux&logoColor=black)
-![Android](https://img.shields.io/badge/Android_(experimental)-3DDC84?style=flat&logo=android&logoColor=white)
+# Bomberrage QA Automation
 
-<br/>
-<p align="center">
-<h3 align="center">💣 Bomberrage</h3>
-<p align="center">
-<a href="https://discord.gg/jbWgwDefnE"><strong>Join our Discord ››</strong></a>
-<br/>
-<a href="https://store.steampowered.com/app/1873240/Bomberrage/">Steam</a>
-·
-<a href="https://trello.com/b/1jbKvyeh/bomber-kanban">Trello</a>
-·
-<a href="https://docs.google.com/document/d/1Dy2gNEdFfdDeJ3V-Gl8kbPuZu46TQg6wGnW3Tej22SI">Docs</a>
-<br/>
-<br/>
-<img src="https://github.com/user-attachments/assets/835bfb02-76ee-4373-a00b-543a0bde7057" width="1440">
-</p>
+![Unreal Engine](https://img.shields.io/badge/Unreal%20Engine-5.7-0E1128?logo=unrealengine)
+![Platform](https://img.shields.io/badge/Platform-Windows-0078D6?logo=windows)
+![Language](https://img.shields.io/badge/Language-C%2B%2B-00599C?logo=cplusplus)
+![Tests](https://img.shields.io/badge/Unit%20Tests-3%20Passing-brightgreen)
 
-## 🌟 About
+## 프로젝트 소개
 
-Bomberrage is an open-source Unreal Engine 5 game available on Steam for Windows, macOS and Linux, actively developed since 2019.
+이 저장소는 오픈 소스 Unreal Engine 게임 **Bomberrage**를 대상으로 테스트 자동화 환경을 구축하는 QA 프로젝트입니다.
 
-![Bomberrage](https://github.com/user-attachments/assets/e8774b8b-2f76-42f1-8eae-e6849658d2d3)
+Unreal Automation Framework를 이용해 게임 코드의 단위 테스트부터 통합·시스템·인수 테스트까지 단계적으로 확장하고, 코드 변경 시 기존 기능이 깨지지 않았는지 반복 검증하는 회귀 테스트 체계를 만드는 것을 목표로 합니다.
 
-## 🚀 Getting Started
+> 이 저장소의 게임 코드와 콘텐츠는 [JanSeliv/Bomber](https://github.com/JanSeliv/Bomber)를 기반으로 합니다. 이 Fork에서 새롭게 진행하는 작업 범위는 QA 자동화 설계와 테스트 코드 작성입니다.
 
-See the [Getting Started](https://docs.google.com/document/d/1Dy2gNEdFfdDeJ3V-Gl8kbPuZu46TQg6wGnW3Tej22SI/edit?tab=t.0#heading=h.p016an855xg8) on how to download UE project or get the packaged build.
+## QA 목표
 
-## 🛠 Key Features
+- 핵심 C++ 로직을 작은 단위로 검증
+- 기능 사이의 연결과 게임 플레이 흐름을 단계적으로 검증
+- 동일한 테스트를 반복 실행할 수 있는 회귀 테스트 구성
+- 테스트 결과를 보고서로 남겨 실패 원인을 추적
+- 향후 GitHub 기반 자동 실행 환경으로 확장
 
-You might find this project useful if you are interested in examples of using any of the following Unreal Engine systems:
+## 개발 및 테스트 환경
 
-- Modding via Game Feature Plugins (GFP)
-- Gameplay Ability System (GAS)
-- Mover 2.0 (replaced Character Movement Component)
-- Online Sessions (Steam)
-- Efficient replication: Push Model, Iris and fast arrays
-- State Trees
-- Level Sequences (12 000+ frames | ~7 min)
-- Primary Data Assets | Data Registries (Data Tables)
-- Async Message System (replaced multicast delegates)
-- Model-View-ViewModel (MVVM)
-- External Data Layers (World Partition)
-- Enhanced Input (remapping)
-- Localization
-- _And more..._
+| 구분 | 사용 환경 |
+| --- | --- |
+| 게임 엔진 | Unreal Engine 5.7 |
+| 개발 도구 | Visual Studio 2022 |
+| 언어 | C++ |
+| 테스트 프레임워크 | Unreal Automation Framework |
+| 운영체제 | Windows |
+| 현재 에셋 | Blockout Map 기반 최소 구성 |
 
-Despite this project is mostly written in C++, it's extremely **blueprint-friendly**:
+현재 단위 테스트와 기본 통합 테스트에는 Blockout Map 구성이 충분합니다. 전체 그래픽 리소스는 추후 시각적 검증과 완성된 플레이 흐름을 다루는 시스템 테스트 단계에서 적용할 예정입니다.
 
-- **Data-Driven Design**: No hardcoded values. 100% data can be tweaked in editor or via mods (Game Feature Plugins).
-- **Fully Exposed**: Every class, property, and function is exposed to Blueprints allowing for heavy changes with no code.
-- **Well-Commented**: Every class, property and function is well-commented for easy understanding.
+## 현재 진행 상태
 
-## Table of Contents
+현재는 **4주차 단위 테스트 단계**입니다.
 
-- [📅 Changelog](#-changelog)
-- [🧑‍🤝‍🧑 Credits](#-credits)
-- [📫 Feedback & Contribution](#-feedback--contribution)
+| 테스트 경로 | 검증 내용 | 결과 |
+| --- | --- | --- |
+| `Bomber.Unit.Smoke` | 테스트 모듈 로드 및 실행 여부 | 통과 |
+| `Bomber.Unit.Cell.Construction` | 셀 좌표 생성 시 정수 단위 반올림 | 통과 |
+| `Bomber.Unit.Cell.Validity` | 정상 셀과 `InvalidCell` 판별 | 통과 |
 
-## 📅 Changelog
-#### `2026-06-23:`
-- Updated to **Unreal Engine 5.7**.
-- Reduced repo size from ~20 GB to ~100 MB: added Blockout Map with minimal content (full content with Maya Map can be downloaded from [Releases](https://github.com/JanSeliv/Bomber/releases/))
-> <img width="640" src="https://github.com/user-attachments/assets/70058b0b-0ca5-48ca-9079-7426206e383f" />
-- Migrated game state management to **State Trees** for cleaner state transitions
-> <img width="640" src="https://github.com/user-attachments/assets/9879e6df-c923-4b24-8137-a91ee933e537">
-- Added arrow indicator above local player during game start:
-> <img height="240" src="https://github.com/user-attachments/assets/c1f2792d-44ff-4337-83c3-db087c73ddd0">
-- Added sprint speed trail VFX when picked up maximum amount of skate powerups by [Kateryna Shchetinina](https://www.artstation.com/kateseliv):
-> <img height="240" src="https://github.com/user-attachments/assets/0ede3ba0-b26b-4cd0-b2d6-4eb4479b2a63">
-- Moved from multicast delegates to global tag-events via Async Message System plugin (aka Lyra's Gameplay Message Router)
-- Migrated to **Data Assets Loader** plugin to feature modding freedom and automatically async load all assets.
-- Added **mod packaging**: one button cooks any Game Feature Plugin separately, so a feature can be distributed and installed as its own standalone, removable mod.
-- Rebalanced bots across all difficulty levels: Hard now runs previous AI behavior, Medium is friendlier now, on Easy no longer dodge bombs or steal power-ups
-- Rebalanced progression rewards to get more stars by default
-- Remapped gamepad controls to a new layout
- ---
-#### `2025-11-17:`
-- Updated to **Unreal Engine 5.6**.
-- Migrated the project to use **Gameplay Ability System (GAS)** for actions (bombs, damage, powerups) and **Mover 2.0** for movement, significantly improving the responsiveness in multiplayer for players with high ping.
-- Implemented **pick up toast** for powerups, which is especially useful during intense gameplay to track easily the number of power-ups:
-> <img height="360" src="https://github.com/user-attachments/assets/48dcb22d-91fd-4285-b695-0283db0f62c6">
-- Players now have proper **death anims** when eliminated, animation by [Kateryna Shchetinina](https://www.artstation.com/kateseliv):
-> <img height="240" src="https://github.com/user-attachments/assets/4d94969d-c115-4e81-b8c2-285a636b7968">
-- Updated progression visualization to display player bombs instead of stars by [Maksim Shashkov](https://www.artstation.com/maksimshashkov) and [Valeriy Rotermel](https://github.com/moinm3uw)
-> <img height="240" src="https://github.com/user-attachments/assets/152730fa-677d-43cc-a5f8-5cbbeeff32dc">
-- Optimized level generation with a single-pass algorithm for large level support, reducing 40x40 map creation time from >1000ms to under 1ms, allowing to build massive maps:
-> <img height="240" src="https://github.com/user-attachments/assets/b0f2ab54-00a1-416d-aefb-706b3f3538a3">
-- Moved level generation to background thread, reducing main thread time from 60ms to 13ms.
- ---
-#### `2025-06-30:`
-- Updated to **Unreal Engine 5.5**.
-- Uploaded the game to the **Steam** for public testing: [store page](https://store.steampowered.com/app/1873240/Bomberrage/).
-- Added **Steam multiplayer** support, so players can invite and join each other via Steam Friends.
-- Added **Android** support (experimental, with some issues).
-- Improved performance with up to 300% gain → [results](https://docs.google.com/spreadsheets/d/10pPYJZAu-qeA9zKYOt6jn8ioxhOD58mFPgjdrATaN84/edit?usp=sharing).
-- Improved networking efficiency by up to 642% with **Push Model** and **Iris** replication → [results](https://trello.com/c/A3kK1Uqj).
-- Finished 4 skins for each character by [Kateryna Shchetinina](https://www.artstation.com/kateseliv), with skins unlock mechanic by [Valeriy Rotermel](https://github.com/moinm3uw):
-> <img width="640" src="https://github.com/user-attachments/assets/11decad0-fa4c-45ff-ba33-9a6e2d805773">
-- Added `Play Area Surrounder` mod on medium difficulty surrounding the play area with walls over time by [Anton Selivanov](https://github.com/antokior)
-> <img height="240" src="https://github.com/user-attachments/assets/1ff184f3-ba25-4315-8ca1-df87d213dfb4">
-- Added `Bomb Storm` mod on hard difficulty massively spawning bombs:
-> <img height="240" src="https://github.com/user-attachments/assets/a7bed05d-0e83-4cf4-aa17-b45744aea124">
-- New Bastet bomb by [Maksim Shashkov](https://www.artstation.com/maksimshashkov):
-> <img height="240" src="https://github.com/user-attachments/assets/27bcf3fe-2ea0-429b-8689-07b3ac4a482b">
-- Progression System has been updated with new star mesh by [Kateryna Shchetinina](https://www.artstation.com/kateseliv) and implementation by [Valeriy Rotermel](https://github.com/moinm3uw):
-> <img height="240" src="https://github.com/user-attachments/assets/66160a94-d192-4bf7-8f99-cfa9854be7eb">
-- Implemented the Loading Screen on launching the game and joining a multiplayer session:
-> <img height="240" src="https://github.com/user-attachments/assets/084270ca-abc3-44c8-bd44-ae1ce26d1e25">
-- Added the **Language setting** and fully localized the game in 30 languages, including Arabic, Chinese, Korean, and Thai:
-> <img width="560" src="https://github.com/user-attachments/assets/68d3c9db-c850-4346-8ffb-231c5c6ec0e8">
-- Implemented `Honor Loss` game result rewarding players who perform well despite losing by design from [Yevhenii Oksenchuk](https://t.me/ComeThird).
-- Implemented unique starting attributes for each character (e.g., Bastet starts with 2 speed, Roger with 2 bombs, etc.)
-- Improved nicknames display in the Main Menu and in-game UI.
- ---
-#### `2024-12-29:`
-- Updated to **Unreal Engine 5.4**.
-- Added **Linux** support (tested on Ubuntu 22.04 LTS)
-- Introduced **In-Game User Interface** with completely new look, utilizing the **Model-View-ViewModel** (MVVM) pattern:
-> <img height="240" src="https://github.com/JanSeliv/Bomber/assets/20540872/73c3c7f7-02b5-4d54-b34f-b354201bfc06">
-- Added cinematic for the Roger character on the Maya level by [Kateryna Shchetinina](https://www.artstation.com/kateseliv):
-> <img height="240" src="https://github.com/JanSeliv/Bomber/assets/20540872/9931d8da-e8cb-4cf5-ab61-361f48afa20b">
-- Added cinematic for the Bastet character on the Maya level by [Kateryna Shchetinina](https://www.artstation.com/kateseliv):
-> <img height="240" src="https://github.com/JanSeliv/Bomber/assets/20540872/0602cc7c-f68c-46fa-9400-46a8bc35c73c">
-- Implemented **Switch Camera Transitions** between characters in Main Menu:
-> <img height="240" src="https://github.com/JanSeliv/Bomber/assets/20540872/aa496ae1-a6bb-41d1-a578-566d1af48170">
-- Unique **Bomb VFX** for each character:
-> <img height="240" src="https://github.com/JanSeliv/Bomber/assets/20540872/3163ade3-7f5f-40be-9c9e-69c0426b8a29">
-- Implemented **[Progression System](https://github.com/moinm3uw/ProgressionSystem)** by [Valeriy Rotermel](https://github.com/moinm3uw) that unlocks new playable characters as you progress in the game:
-> <img height="240" src="https://github.com/user-attachments/assets/742ad861-f077-44f8-a6ae-048665b8a77f">
-- New **Box and Wall meshes** for the Maya level by [Maksim Shashkov](https://www.artstation.com/maksimshashkov):
-> <img height="240" src="https://github.com/user-attachments/assets/01e72eb6-ca89-4392-957c-92aba9663cdc">
-- Implemented **Credits** screen by [Yevhenii Oksenchuk](https://t.me/ComeThird):
-> <img height="240" src="https://github.com/user-attachments/assets/5ec5c208-9b3e-4b1c-be3d-711a973ce652">
-- New **Splash** by [Maksim Shashkov](https://www.artstation.com/maksimshashkov):
-> <img height="240" src="https://github.com/user-attachments/assets/8df95267-6c8d-4434-bb18-c7381c4ef601">
-- Converted the Maya level to the **World Partition** to benefit from automatic streaming and External Data Layers.
- ---
-#### `2024-01-13:`
-- Updated to **Unreal Engine 5.3**.
-- **New Main Menu** with completely different UI and complex cinematics for Hugo and Fori characters on starting the game:
-> <img height="240" src="https://github.com/JanSeliv/Bomber/assets/20540872/9c960fa4-6760-4298-a55b-54d0cb8a0b13">
-- **New Bomb meshes** for each character (shown from left to right: Bastet, Hugo, Fori, Roger) by [Maksim Shashkov](https://www.artstation.com/maksimshashkov):
-> <img height="240" src="https://github.com/JanSeliv/Bomber/assets/20540872/ce787e8c-d95c-4844-9282-e7aaff3dc243">
-- **New game icon**: ![GameIcon](https://github.com/JanSeliv/Bomber/assets/20540872/ca239a66-b550-4a45-ba4f-182d85e3c460)
- ---
-#### `2023-06-12:`
-- Updated to **Unreal Engine 5.2**.
-- Added **MacOS** support.
-- Added **Ultra-wide** resolutions support.
-- Extracted logic into plugins, so other developers can benefit from it in their projects
-- Added Foot Trails for the Maya level by [Anton Selivanov](https://github.com/antokior):
->  <img height="240" alt="image" src="https://github.com/JanSeliv/Bomber/assets/20540872/a77c2e38-4fd6-4a04-988e-05d9613bd97e">
-- New power-ups meshes for the Maya level (shown from left to right: move speed, bomb length, bomb quantity) by [Maksim Shashkov](https://www.artstation.com/maksimshashkov):
->  <img height="240" alt="image" src="https://github.com/JanSeliv/Bomber/assets/20540872/1e526fda-e51a-479c-b541-acccc8457725">
-- Added new cheats such as: `Bomber.Level.SetSize 9x7` (find more on the [Bomber cheats page](https://trello.com/c/5PiHt7Ah/308-bomber-cheats))
-- Updated Main-Menu background music.
- --- 
-#### `2022-05-31:`
-- Added initial **multiplayer** support for 4 players (without Steam now, use 'Open' command to connect to each other).
-- Created the **Pool Manager** for the generated level to avoid spawning and destroying actors on each level reconstruction.
-- Added new **SteelMan** character for AI players with 3 different skins by [Kateryna Shchetinina](https://www.artstation.com/kateseliv):
->  <img height="240" src="https://user-images.githubusercontent.com/20540872/171299202-3422db3c-7061-4b75-b51c-a08a67d65ab5.gif">
- ---
-#### `2021-12-31:`
-- The game migrated to the **Unreal Engine 5**.
-- Added sounds (background music, UI, in-game sounds) and sliders to tweak volumes in Settings Audio tab (Master, Music and SFX).
-- Added Controls tab in Settings to allow player remap input keys.
->  <img height="240" src="https://user-images.githubusercontent.com/20540872/147825296-ce7d33da-dfda-4757-b070-bfd08f700134.jpg">
- ---
-#### `2021-06-03:`
-- Added the Maya level by [Maksim Shashkov](https://www.artstation.com/maksimshashkov):
->  <img height="240" src="https://user-images.githubusercontent.com/20540872/120249537-8bf83e80-c27b-11eb-81be-583e8c30aa62.jpg">
-- Implemented `Settings` screen:
->  <img height="240" src="https://user-images.githubusercontent.com/20540872/120127584-0e232d00-c1c0-11eb-8467-74632400c180.jpg">
- ---
-#### `2021-01-31:`
-- Updated to **Unreal Engine 4.26**.
-- Added the Bastet (Sphynx cat) and Roger (Pirate) characters by [Kateryna Shchetinina](https://www.artstation.com/kateseliv):
-- Fori and Hugo characters got additional second skins by [Kateryna Shchetinina](https://www.artstation.com/kateseliv):
-> <img height="240" src="https://user-images.githubusercontent.com/20540872/106404153-23ff2c00-6432-11eb-8cb1-d3a7bc33b51b.gif">
- ---
-#### `2020-10-25`:
-- Updated to **Unreal Engine 4.25**.
-- Added the Hugo and Fori characters by [Kateryna Shchetinina](https://www.artstation.com/kateseliv):
-> <img height="240" src="https://user-images.githubusercontent.com/20540872/97118032-125a0a00-1708-11eb-8256-4bec419b1d48.gif">
- ---
-#### `2019-10-15:`
-- Uploaded first game-ready build on **Unreal Engine 4.23**: [download from GDrive](https://drive.google.com/file/d/1DY4l9XEcazxouiTDTPcZhBv3XDKAfDBD)
-- **The level camera** that moves and zooms lens depending on the distance between players:
-> <img height="240" src="https://user-images.githubusercontent.com/20540872/62881283-b6d47400-bd2f-11e9-91bb-94d60942f8f8.gif">
-- First UI displaying the items (at the left side of the player’s avatar), the timer (that is placed under) and the number of alive players (at the
-  right side):
-> <img height="240" src="https://user-images.githubusercontent.com/20540872/63038224-f8e0ef80-bec0-11e9-9f32-711793cd9bee.gif">
-- Symmetrical **Procedural generation** for each new game:
-> <img height="240" src="https://user-images.githubusercontent.com/20540872/67123411-8659fc00-f1f0-11e9-8b71-f0b9072c34f8.gif">
-- Dynamic scaling in the editor:
-> <img height="240" src="https://user-images.githubusercontent.com/20540872/63046685-45352b00-bed3-11e9-81f4-fea4fdf1f0c7.gif">
-- Dynamic placement of the actors on the level:
-> <img height="240" src="https://user-images.githubusercontent.com/20540872/63053411-f5aa2b80-bee1-11e9-9328-79cf77609ec7.gif">
-- Free location and rotation of the level map in the editor:
-> <img height="240" src="https://user-images.githubusercontent.com/20540872/63057315-3f970f80-beea-11e9-979f-c7874042a382.gif">
-- Smart **AI** surviving through any explosions:
-> <img height="240" src="https://user-images.githubusercontent.com/20540872/63062621-e46d1900-bef9-11e9-8e84-dbad3eb14dc6.gif">
+최근 전체 실행 결과: **3개 성공 / 경고 0 / 실패 0**
 
-## 🧑‍🤝‍🧑 Credits
+## 테스트 코드 구조
 
-- **Yevhenii Selivanov** - Programming - [LinkedIn](https://www.linkedin.com/in/yevhenii-selivanov/), [Discord](https://discord.gg/jbWgwDefnE)
-- **Maksim Shashkov** - Level Design & Level Art - [Artstation](https://www.artstation.com/maksimshashkov)
-- **Kateryna Shchetinina** - Characters & Animations - [Artstation](https://www.artstation.com/kateseliv)
-- **Yevhenii Oksenchuk** - Game Design (Audio, UI, and Cinematics) - [LinkedIn](https://www.linkedin.com/in/yevhenii-oksenchuk-358b99292/)
-- **Valeriy Rotermel** - [Progression System](https://github.com/moinm3uw/ProgressionSystem) - [GitHub](https://github.com/moinm3uw)
-- **Anton Selivanov** - Foot Trails | Play Area Surrounder - [GitHub](https://github.com/antokior)
+```text
+Source/BomberTests/
+├─ BomberTests.Build.cs
+└─ Private/
+   ├─ BomberTestsModule.cpp
+   └─ Unit/
+      ├─ BomberSmokeTest.cpp
+      ├─ BmrCellConstructionTest.cpp
+      └─ BmrCellValidityTest.cpp
+```
 
-## 📫 Feedback & Contribution
+`BomberTests`는 에디터 전용 테스트 모듈입니다. 게임 실행용 코드와 테스트 코드를 분리해 실제 게임 빌드에 테스트 코드가 포함되지 않도록 구성했습니다.
 
-Feedback and contributions from the community are highly appreciated!
+## 테스트 실행 방법
 
-- **Tasks:** Check our [Trello](https://trello.com/b/1jbKvyeh/bomber-kanban) - unassigned tasks and bugs are open for contribution.
-- **Report & Suggest:** Found a bug or have a feature idea? Open an issue.
-- **Fork & Pull:** Fork the project, make your changes, and submit a pull request to the `develop` branch.
-- **Standards:** Adhere to the [Unreal Engine Coding Standards](https://dev.epicgames.com/documentation/en-us/unreal-engine/epic-cplusplus-coding-standard-for-unreal-engine) and [Naming Standards](https://github.com/Allar/ue5-style-guide) when contributing.
-- **Blueprints & Assets:** If contributing blueprint logic or assets, attach screenshots to show what has changed.
+### Unreal Editor에서 실행
+
+1. 프로젝트를 Unreal Editor로 실행합니다.
+2. `Tools > Test Automation`을 엽니다.
+3. `Bomber.Unit` 항목을 선택합니다.
+4. 테스트를 실행하고 성공·실패 결과를 확인합니다.
+
+### 명령줄에서 전체 단위 테스트 실행
+
+아래의 `<UE_ROOT>`와 `<PROJECT_ROOT>`를 각 PC의 실제 경로로 변경합니다.
+
+```powershell
+& "<UE_ROOT>\Engine\Binaries\Win64\UnrealEditor-Cmd.exe" `
+  "<PROJECT_ROOT>\Bomber.uproject" `
+  -unattended -nop4 -nosplash -NullRHI `
+  '-ExecCmds=Automation RunTest Bomber.Unit;Quit' `
+  '-TestExit=Automation Test Queue Empty' `
+  '-ReportExportPath=<PROJECT_ROOT>\Saved\Automation\Unit' `
+  -log
+```
+
+실행 결과는 지정한 `Saved/Automation` 경로에 HTML과 JSON 보고서로 생성됩니다. `Saved` 폴더는 로컬 실행 결과이므로 Git에 커밋하지 않습니다.
+
+## 주차별 진행 계획
+
+| 주차 | 목표 | 상태 |
+| --- | --- | --- |
+| 1주차 | 프로젝트 선정과 QA 자동화 목표 정의 | 완료 |
+| 2주차 | `Source`, `Plugins`, `Content` 구조 분석 | 완료 |
+| 3주차 | Unreal·Visual Studio 빌드 환경 구성 | 완료 |
+| 4주차 | 핵심 C++ 로직 단위 테스트 작성 | 진행 중 |
+| 5주차 | 주요 객체와 기능 간 통합 테스트 | 예정 |
+| 이후 | 시스템·인수 테스트 및 GitHub 자동 실행 | 예정 |
+
+## 테스트 확장 계획
+
+다음 단위 테스트 후보는 아래와 같습니다.
+
+- `FBmrCell` 동등성 비교
+- 셀 좌표 연산과 방향 처리
+- 빈 셀 집합의 기본 반환값
+- 경계값과 잘못된 입력 처리
+
+단위 테스트가 안정화되면 맵 생성, 폭탄 설치·폭발, 캐릭터 피해 처리처럼 여러 객체가 함께 동작하는 통합 테스트로 확장합니다.
+
+## 브랜치 운영
+
+- `master`: 개인 Fork의 기준 브랜치
+- `qa/week4-unit-tests`: 4주차 단위 테스트 작업 브랜치
+- `upstream`: 원본 `JanSeliv/Bomber` 저장소
+- `origin`: QA 작업을 저장하는 `MunChaeWon/Bomber` Fork
+
+테스트 변경은 작업 브랜치에서 검증한 뒤 Pull Request를 통해 기준 브랜치에 반영하는 방식을 사용합니다.
+
+## 원본 프로젝트 및 라이선스
+
+- 원본 프로젝트: [JanSeliv/Bomber](https://github.com/JanSeliv/Bomber)
+- 원본 게임: Bomberrage
+- 원본 개발자: Yevhenii Selivanov 및 기여자
+- 라이선스: [MIT License](LICENSE)
+
+게임 코드와 기존 콘텐츠의 저작권은 원본 프로젝트의 작성자와 기여자에게 있습니다. 이 저장소의 QA 관련 변경 사항은 테스트 자동화 학습과 프로젝트 수행을 목적으로 합니다.
