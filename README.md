@@ -3,7 +3,7 @@
 ![Unreal Engine](https://img.shields.io/badge/Unreal%20Engine-5.7-0E1128?logo=unrealengine)
 ![Platform](https://img.shields.io/badge/Platform-Windows-0078D6?logo=windows)
 ![Language](https://img.shields.io/badge/Language-C%2B%2B-00599C?logo=cplusplus)
-![Tests](https://img.shields.io/badge/Unit%20Tests-3%20Passing-brightgreen)
+![Tests](https://img.shields.io/badge/Unit%20Tests-4%20Passing-brightgreen)
 
 ## 프로젝트 소개
 
@@ -43,8 +43,9 @@ Unreal Automation Framework를 이용해 게임 코드의 단위 테스트부터
 | `Bomber.Unit.Smoke` | 테스트 모듈 로드 및 실행 여부 | 통과 |
 | `Bomber.Unit.Cell.Construction` | 셀 좌표 생성 시 정수 단위 반올림 | 통과 |
 | `Bomber.Unit.Cell.Validity` | 정상 셀과 `InvalidCell` 판별 | 통과 |
+| `Bomber.Unit.Cell.Equality` | 동일·상이한 좌표 및 `InvalidCell` 비교 | 통과 |
 
-최근 전체 실행 결과: **3개 성공 / 경고 0 / 실패 0**
+최근 전체 실행 결과: **4개 성공 / 경고 0 / 실패 0**
 
 ## 테스트 코드 구조
 
@@ -56,7 +57,8 @@ Source/BomberTests/
    └─ Unit/
       ├─ BomberSmokeTest.cpp
       ├─ BmrCellConstructionTest.cpp
-      └─ BmrCellValidityTest.cpp
+      ├─ BmrCellValidityTest.cpp
+      └─ BmrCellEqualityTest.cpp
 ```
 
 `BomberTests`는 에디터 전용 테스트 모듈입니다. 게임 실행용 코드와 테스트 코드를 분리해 실제 게임 빌드에 테스트 코드가 포함되지 않도록 구성했습니다.
