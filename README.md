@@ -3,7 +3,7 @@
 ![Unreal Engine](https://img.shields.io/badge/Unreal%20Engine-5.7-0E1128?logo=unrealengine)
 ![Platform](https://img.shields.io/badge/Platform-Windows-0078D6?logo=windows)
 ![Language](https://img.shields.io/badge/Language-C%2B%2B-00599C?logo=cplusplus)
-![Tests](https://img.shields.io/badge/Unit%20Tests-5%20Passing-brightgreen)
+![Tests](https://img.shields.io/badge/Unit%20Tests-6%20Passing-brightgreen)
 
 ## 프로젝트 소개
 
@@ -45,8 +45,9 @@ Unreal Automation Framework를 이용해 게임 코드의 단위 테스트부터
 | `Bomber.Unit.Cell.Validity` | 정상 셀과 `InvalidCell` 판별 | 통과 |
 | `Bomber.Unit.Cell.Equality` | 동일·상이한 좌표 및 `InvalidCell` 비교 | 통과 |
 | `Bomber.Unit.Cell.Arithmetic` | 덧셈·뺄셈·복합 대입·배율 연산 | 통과 |
+| `Bomber.Unit.Cell.Direction` | 방향 enum과 셀의 양방향 변환 | 통과 |
 
-최근 전체 실행 결과: **5개 성공 / 경고 0 / 실패 0**
+최근 전체 실행 결과: **6개 성공 / 경고 0 / 실패 0**
 
 ## 테스트 코드 구조
 
@@ -60,7 +61,8 @@ Source/BomberTests/
       ├─ BmrCellConstructionTest.cpp
       ├─ BmrCellValidityTest.cpp
       ├─ BmrCellEqualityTest.cpp
-      └─ BmrCellArithmeticTest.cpp
+      ├─ BmrCellArithmeticTest.cpp
+      └─ BmrCellDirectionTest.cpp
 ```
 
 `BomberTests`는 에디터 전용 테스트 모듈입니다. 게임 실행용 코드와 테스트 코드를 분리해 실제 게임 빌드에 테스트 코드가 포함되지 않도록 구성했습니다.
@@ -105,7 +107,6 @@ Source/BomberTests/
 
 다음 단위 테스트 후보는 아래와 같습니다.
 
-- 셀 방향 변환
 - 빈 셀 집합의 기본 반환값
 - 경계값과 잘못된 입력 처리
 
