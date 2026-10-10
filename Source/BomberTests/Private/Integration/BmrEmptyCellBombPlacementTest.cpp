@@ -187,6 +187,8 @@ bool FBmrEmptyCellBombPlacementTest::RunTest(const FString& Parameters)
 		return false;
 	}));
 
+	// Keep PIE visible long enough to observe the placed bomb and capture video evidence.
+	AddCommand(new FWaitLatentCommand(5.0));
 	AddCommand(new FEndPlayMapCommand());
 	return true;
 }
