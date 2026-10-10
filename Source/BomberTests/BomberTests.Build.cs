@@ -15,6 +15,7 @@ public class BomberTests : ModuleRules
 			"Engine",
 			"Bomber",
 			"GameplayAbilities",
+			"MyUtils",
 			"UnrealEd"
 		});
 	}
