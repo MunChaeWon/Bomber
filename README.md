@@ -3,11 +3,11 @@
 ![Unreal Engine](https://img.shields.io/badge/Unreal%20Engine-5.7-0E1128?logo=unrealengine)
 ![Platform](https://img.shields.io/badge/Platform-Windows-0078D6?logo=windows)
 ![Language](https://img.shields.io/badge/Language-C%2B%2B-00599C?logo=cplusplus)
-![Tests](https://img.shields.io/badge/Unit%20Tests-3%20Passing-brightgreen)
+![Tests](https://img.shields.io/badge/Unit%20Tests-6%20Passing-brightgreen)
 
 ## 프로젝트 소개
 
-이 저장소는 오픈 소스 Unreal Engine 게임 **Bomberrage**를 대상으로 테스트 자동화 환경을 구축하는 QA 프로젝트입니다.
+이 저장소는 오픈 소스 Unreal Engine 게임 **Bomberrage**의 **폭탄 설치 및 폭발 피해 기능**을 중심으로 테스트 자동화 환경을 구축하는 QA 프로젝트입니다.
 
 Unreal Automation Framework를 이용해 게임 코드의 단위 테스트부터 통합·시스템·인수 테스트까지 단계적으로 확장하고, 코드 변경 시 기존 기능이 깨지지 않았는지 반복 검증하는 회귀 테스트 체계를 만드는 것을 목표로 합니다.
 
@@ -15,7 +15,7 @@ Unreal Automation Framework를 이용해 게임 코드의 단위 테스트부터
 
 ## QA 목표
 
-- 핵심 C++ 로직을 작은 단위로 검증
+- 폭탄 공격의 기반이 되는 셀 좌표와 방향 로직을 작은 단위로 검증
 - 기능 사이의 연결과 게임 플레이 흐름을 단계적으로 검증
 - 동일한 테스트를 반복 실행할 수 있는 회귀 테스트 구성
 - 테스트 결과를 보고서로 남겨 실패 원인을 추적
@@ -36,15 +36,20 @@ Unreal Automation Framework를 이용해 게임 코드의 단위 테스트부터
 
 ## 현재 진행 상태
 
-현재는 **4주차 단위 테스트 단계**입니다.
+**4주차 단위 테스트를 완료**했으며, 다음 단계에서는 폭탄 설치와 폭발 피해 흐름의 통합 테스트를 진행합니다.
 
 | 테스트 경로 | 검증 내용 | 결과 |
 | --- | --- | --- |
 | `Bomber.Unit.Smoke` | 테스트 모듈 로드 및 실행 여부 | 통과 |
 | `Bomber.Unit.Cell.Construction` | 셀 좌표 생성 시 정수 단위 반올림 | 통과 |
 | `Bomber.Unit.Cell.Validity` | 정상 셀과 `InvalidCell` 판별 | 통과 |
+| `Bomber.Unit.Cell.Equality` | 동일·상이한 좌표 및 `InvalidCell` 비교 | 통과 |
+| `Bomber.Unit.Cell.Arithmetic` | 덧셈·뺄셈·복합 대입·배율 연산 | 통과 |
+| `Bomber.Unit.Cell.Direction` | 방향 enum과 셀의 양방향 변환 | 통과 |
 
-최근 전체 실행 결과: **3개 성공 / 경고 0 / 실패 0**
+최근 전체 실행 결과: **6개 성공 / 경고 0 / 실패 0**
+
+성공 결과와 실패 감지 시연을 포함한 자세한 내용은 [4주차 단위 테스트 결과 보고서](Docs/QA/Week4_Unit_Test_Report.md)에서 확인할 수 있습니다.
 
 ## 테스트 코드 구조
 
@@ -56,7 +61,10 @@ Source/BomberTests/
    └─ Unit/
       ├─ BomberSmokeTest.cpp
       ├─ BmrCellConstructionTest.cpp
-      └─ BmrCellValidityTest.cpp
+      ├─ BmrCellValidityTest.cpp
+      ├─ BmrCellEqualityTest.cpp
+      ├─ BmrCellArithmeticTest.cpp
+      └─ BmrCellDirectionTest.cpp
 ```
 
 `BomberTests`는 에디터 전용 테스트 모듈입니다. 게임 실행용 코드와 테스트 코드를 분리해 실제 게임 빌드에 테스트 코드가 포함되지 않도록 구성했습니다.
@@ -93,20 +101,19 @@ Source/BomberTests/
 | 1주차 | 프로젝트 선정과 QA 자동화 목표 정의 | 완료 |
 | 2주차 | `Source`, `Plugins`, `Content` 구조 분석 | 완료 |
 | 3주차 | Unreal·Visual Studio 빌드 환경 구성 | 완료 |
-| 4주차 | 핵심 C++ 로직 단위 테스트 작성 | 진행 중 |
-| 5주차 | 주요 객체와 기능 간 통합 테스트 | 예정 |
+| 4주차 | 폭발 계산 기반 셀 로직 단위 테스트 | 완료 |
+| 5주차 | 폭탄 설치·폭발 피해 기능 통합 테스트 | 예정 |
 | 이후 | 시스템·인수 테스트 및 GitHub 자동 실행 | 예정 |
 
 ## 테스트 확장 계획
 
-다음 단위 테스트 후보는 아래와 같습니다.
+5주차에는 다음 순서로 통합 테스트를 확장합니다.
 
-- `FBmrCell` 동등성 비교
-- 셀 좌표 연산과 방향 처리
-- 빈 셀 집합의 기본 반환값
-- 경계값과 잘못된 입력 처리
-
-단위 테스트가 안정화되면 맵 생성, 폭탄 설치·폭발, 캐릭터 피해 처리처럼 여러 객체가 함께 동작하는 통합 테스트로 확장합니다.
+1. 정상 셀과 점유 셀의 폭탄 설치 조건
+2. 화력 수치에 따른 폭발 범위
+3. 벽과 상자의 폭발 반응
+4. 폭발 피해에 따른 플레이어 체력 감소
+5. 여유가 있을 경우 연쇄 폭발
 
 ## 브랜치 운영
 
