@@ -11,13 +11,13 @@ if not exist "%RUNNER%" (
     goto :finish
 )
 
-powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File "%RUNNER%"
+powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File "%RUNNER%" -Suite Integration %*
 set "EXIT_CODE=%ERRORLEVEL%"
 
 :finish
 echo.
 if "%EXIT_CODE%"=="0" (
-    echo [DONE] Tests and Google Sheet synchronization completed.
+    echo [DONE] Integration QA workflow completed.
 ) else (
     echo [FAILED] QA workflow exit code: %EXIT_CODE%
 )

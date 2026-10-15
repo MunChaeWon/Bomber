@@ -1,0 +1,12 @@
+{
+  "jira": {
+    "siteUrl": "https://YOUR-SITE.atlassian.net",
+    "email": "YOUR_ATLASSIAN_EMAIL",
+    "apiToken": "YOUR_ATLASSIAN_API_TOKEN",
+    "projectKey": "YOUR_PROJECT_KEY",
+    "issueType": "Bug"
+  },
+  "slack": {
+    "webhookUrl": "YOUR_SLACK_INCOMING_WEBHOOK_URL"
+  }
+}

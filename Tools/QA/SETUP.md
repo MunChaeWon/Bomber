@@ -1,6 +1,12 @@
 # Bomber QA BAT setup
 
-`RunBomberQA.bat` runs `Bomber.Integration.Bomb` through `UnrealEditor-Cmd.exe`, validates the new `index.json`, and sends only verified results to the exact Google Sheet named `Bomber QA 테스트 케이스`.
+The root BAT files run the selected suite through `UnrealEditor-Cmd.exe`, validate the new `index.json`, and send only verified results to the exact Google Sheet named `Bomber QA 테스트 케이스`.
+
+- `RunBomberQA.bat`: `Bomber.Integration.Bomb` -> `통합 테스트 케이스`
+- `RunBomberSystemQA.bat`: `Bomber.System` -> `시스템 테스트 케이스`
+- `RunBomberJiraFailureDemo.bat`: runs only `SYS-JIRA-FAIL-001`, updates the system sheet, creates or updates a Jira bug, and posts the failure summary to Slack
+
+`Bomber.SystemDemo.Jira.IntentionalFailure` is deliberately excluded from the normal system BAT. It will be invoked separately when validating the Jira failure pipeline.
 
 ## One-time Google Apps Script setup
 
@@ -19,9 +25,13 @@
 
 `qa-sheet.local.json` is excluded from Git. Never commit its URL/token.
 
+Jira and Slack secrets live only in `qa-integrations.local.json`, copied from `qa-integrations.local.example.json`. This local file is also excluded from Git.
+
+The deployed script discovers test IDs from the target sheet and validates only the suite-specific ID/path prefixes. Adding another `UNIT-`, `INT-`, `SYS-`, `ACC-`, or `UAT-` row does not require another deployment. Deploy a new Apps Script version only when `GoogleAppsScript.gs`, the payload schema, or the supported sheet names change.
+
 ## Run
 
-Close Unreal Editor and double-click `RunBomberQA.bat`.
+Close Unreal Editor, then double-click the BAT for the suite you want to run.
 
 Exit codes:
 
@@ -30,5 +40,6 @@ Exit codes:
 - `2`: at least one test was blocked or incomplete
 - `3`: tests finished, but Sheet synchronization failed
 - `10`: Unreal Editor was already running
+- `4`: Jira or Slack integration failed
 
 Every validated payload is retained under `Saved/Automation/SheetSync` so a Sheet failure does not destroy the test result.

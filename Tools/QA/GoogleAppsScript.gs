@@ -1,18 +1,39 @@
 const BOMBER_QA = Object.freeze({
   spreadsheetId: '1UGXPM7sho_VNmtClY1Nrd-pBGjv7YkrBoXlWgwz534g',
   spreadsheetTitle: 'Bomber QA 테스트 케이스',
-  sheetName: '통합 테스트 케이스',
   firstDataRow: 9,
   idColumn: 2,
   actualResultColumn: 13,
   stateColumn: 14,
   commentColumn: 16,
   allowedStates: ['Pass', 'Fail', 'Blocked', 'N/A'],
-  automationPaths: {
-    'INT-BOMB-001': 'Bomber.Integration.Bomb.EmptyCellPlacement',
-    'INT-BOMB-002': 'Bomber.Integration.Bomb.RejectOccupiedCell'
+  sheets: {
+    '단위 테스트 케이스': {
+      suite: 'Unit',
+      testIdPrefixes: ['UNIT-'],
+      automationPathPrefixes: ['Bomber.Unit.']
+    },
+    '통합 테스트 케이스': {
+      suite: 'Integration',
+      testIdPrefixes: ['INT-'],
+      automationPathPrefixes: ['Bomber.Integration.']
+    },
+    '시스템 테스트 케이스': {
+      suite: 'System',
+      testIdPrefixes: ['SYS-'],
+      automationPathPrefixes: ['Bomber.System.', 'Bomber.SystemDemo.']
+    },
+    '인수 테스트 케이스': {
+      suite: 'Acceptance',
+      testIdPrefixes: ['ACC-', 'UAT-'],
+      automationPathPrefixes: ['Bomber.Acceptance.', 'Bomber.UAT.']
+    }
   }
 });
+
+function startsWithAny_(value, prefixes) {
+  return typeof value === 'string' && prefixes.some(prefix => value.startsWith(prefix));
+}
 
 function jsonResponse_(body) {
   return ContentService
@@ -32,18 +53,23 @@ function doPost(e) {
     }
     if (body.spreadsheetId !== BOMBER_QA.spreadsheetId ||
         body.spreadsheetTitle !== BOMBER_QA.spreadsheetTitle ||
-        body.sheetName !== BOMBER_QA.sheetName) {
+        !BOMBER_QA.sheets[body.sheetName]) {
       throw new Error('Spreadsheet identity mismatch.');
     }
     if (!Array.isArray(body.results) || body.results.length === 0) {
       throw new Error('No test results were supplied.');
     }
 
+    const sheetConfig = BOMBER_QA.sheets[body.sheetName];
+    if (body.suite !== sheetConfig.suite) {
+      throw new Error(`Suite mismatch for ${body.sheetName}: ${body.suite}`);
+    }
+
     const spreadsheet = SpreadsheetApp.openById(BOMBER_QA.spreadsheetId);
     if (spreadsheet.getName() !== BOMBER_QA.spreadsheetTitle) {
       throw new Error('The target spreadsheet title has changed.');
     }
-    const sheet = spreadsheet.getSheetByName(BOMBER_QA.sheetName);
+    const sheet = spreadsheet.getSheetByName(body.sheetName);
     if (!sheet) {
       throw new Error('Target sheet was not found.');
     }
@@ -57,11 +83,19 @@ function doPost(e) {
       if (row[0]) rowById[row[0].trim()] = BOMBER_QA.firstDataRow + index;
     });
 
+    const receivedIds = new Set();
     const updates = body.results.map(result => {
       if (!result.testId || !rowById[result.testId]) {
         throw new Error(`Unknown test ID: ${result.testId}`);
       }
-      if (result.automationPath !== BOMBER_QA.automationPaths[result.testId]) {
+      if (receivedIds.has(result.testId)) {
+        throw new Error(`Duplicate test ID: ${result.testId}`);
+      }
+      receivedIds.add(result.testId);
+      if (!startsWithAny_(result.testId, sheetConfig.testIdPrefixes)) {
+        throw new Error(`Test ID prefix mismatch for ${result.testId}.`);
+      }
+      if (!startsWithAny_(result.automationPath, sheetConfig.automationPathPrefixes)) {
         throw new Error(`Automation path mismatch for ${result.testId}.`);
       }
       if (!BOMBER_QA.allowedStates.includes(result.state)) {
