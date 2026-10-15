@@ -849,7 +849,7 @@ bool FBmrSystemVideoLoadRecoveryTest::RunTest(const FString& Parameters)
 	AddCommand(new FStartPIECommand(false));
 	AddCommand(new FFunctionLatentCommand([this, State]()
 	{
-		if (PrepareGameplay(*State) && SelectLoadCells(*State))
+		if (PrepareGameplay(*State))
 		{
 			ShowVideoStage(TEXT("[LOAD VIDEO 1/5] Game ready. Preparing the multi-bomb load phase."), VisualStageHoldSeconds);
 			return true;
@@ -863,8 +863,17 @@ bool FBmrSystemVideoLoadRecoveryTest::RunTest(const FString& Parameters)
 		return false;
 	}));
 	AddCommand(new FWaitLatentCommand(VisualStageHoldSeconds));
-	AddCommand(new FFunctionLatentCommand([State]()
+	AddCommand(new FFunctionLatentCommand([this, State]()
 	{
+		State->LoadCells.Reset();
+		State->RequestedBombCount = 0;
+		State->SpawnedBombCount = 0;
+		if (!SelectLoadCells(*State))
+		{
+			AddError(TEXT("SYS-VIDEO-002: No empty cells are available immediately before the visible load phase."));
+			return true;
+		}
+
 		UGameplayStatics::SetGlobalTimeDilation(GetPIEWorld(), 0.2f);
 		SpawnLoadBombs(State);
 		State->Deadline = FPlatformTime::Seconds() + ActionTimeoutSeconds;
