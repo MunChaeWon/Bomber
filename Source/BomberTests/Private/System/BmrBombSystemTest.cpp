@@ -27,6 +27,7 @@
 #include "Engine/Engine.h"
 #include "Engine/World.h"
 #include "EngineUtils.h"
+#include "Kismet/GameplayStatics.h"
 #include "Tests/AutomationCommon.h"
 #include "Tests/AutomationEditorCommon.h"
 
@@ -34,6 +35,8 @@ namespace BmrBombSystemTest
 {
 constexpr double SetupTimeoutSeconds = 30.0;
 constexpr double ActionTimeoutSeconds = 10.0;
+constexpr double VisualStageHoldSeconds = 3.0;
+constexpr double VisualBombHoldSeconds = 1.0;
 constexpr int32 LoadBombLimit = 32;
 
 struct FBaseState
@@ -263,13 +266,13 @@ void SpawnLoadBombs(const TSharedRef<FLoadState>& State)
 	}
 }
 
-bool SelectLoadCells(FLoadState& State)
+bool SelectLoadCells(FLoadState& State, int32 BombLimit = LoadBombLimit)
 {
 	const FBmrCells EmptyCells = UBmrCellUtilsLibrary::GetAllEmptyCellsWithoutActors();
 	for (const FBmrCell& Cell : EmptyCells)
 	{
 		State.LoadCells.Add(Cell);
-		if (State.LoadCells.Num() >= LoadBombLimit)
+		if (State.LoadCells.Num() >= BombLimit)
 		{
 			break;
 		}
@@ -277,6 +280,14 @@ bool SelectLoadCells(FLoadState& State)
 
 	State.RequestedBombCount = State.LoadCells.Num();
 	return State.RequestedBombCount > 0;
+}
+
+void ShowVideoStage(const FString& Message, float Duration = 4.0f)
+{
+	if (GEngine)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, Duration, FColor::Green, Message);
+	}
 }
 } // namespace BmrBombSystemTest
 
@@ -713,6 +724,242 @@ bool FBmrPostLoadRecoverySystemTest::RunTest(const FString& Parameters)
 		}
 		return false;
 	}));
+	AddCommand(new FEndPlayMapCommand());
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FBmrSystemVideoLifecycleTest,
+	"Bomber.SystemVisual.Video.BombLifecycleAndWorldReaction",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FBmrSystemVideoLifecycleTest::RunTest(const FString& Parameters)
+{
+	using namespace BmrBombSystemTest;
+
+	if (!AutomationOpenMap(TEXT("/Game/Bomber/Maps/Main")))
+	{
+		AddError(TEXT("SYS-VIDEO-001: Failed to open /Game/Bomber/Maps/Main."));
+		return false;
+	}
+
+	const TSharedRef<FBoxDestructionState> State = MakeShared<FBoxDestructionState>();
+	State->Deadline = FPlatformTime::Seconds() + SetupTimeoutSeconds;
+
+	AddCommand(new FStartPIECommand(false));
+	AddCommand(new FFunctionLatentCommand([this, State]()
+	{
+		if (PrepareGameplay(*State) && FindBoxAndAdjacentEmptyCell(State->BoxCell, State->TargetCell))
+		{
+			ShowVideoStage(TEXT("[SYSTEM VIDEO 1/4] Game world and player are ready."), VisualStageHoldSeconds);
+			return true;
+		}
+
+		if (FPlatformTime::Seconds() >= State->Deadline)
+		{
+			AddError(TEXT("SYS-VIDEO-001: Timed out preparing the visible scenario."));
+			return true;
+		}
+		return false;
+	}));
+	AddCommand(new FWaitLatentCommand(VisualStageHoldSeconds));
+	AddCommand(new FFunctionLatentCommand([this, State]()
+	{
+		if (!State->bSetupComplete
+		    || !FindBoxAndAdjacentEmptyCell(State->BoxCell, State->TargetCell)
+		    || !RequestBombAtCell(State->Pawn.Get(), State->TargetCell))
+		{
+			AddError(TEXT("SYS-VIDEO-001: Failed to place a bomb next to the target box."));
+			return true;
+		}
+
+		UGameplayStatics::SetGlobalTimeDilation(GetPIEWorld(), 0.5f);
+		State->Deadline = FPlatformTime::Seconds() + ActionTimeoutSeconds;
+		return true;
+	}));
+	AddCommand(new FFunctionLatentCommand([this, State]()
+	{
+		if (CountActorsAtCell(State->TargetCell, TO_FLAG(EAT::Bomb)) == 1)
+		{
+			State->bBombObserved = true;
+			State->ExplosionDeadline = FPlatformTime::Seconds() + UBmrBombDataAsset::Get().GetDurationTime() + ActionTimeoutSeconds;
+			ShowVideoStage(TEXT("[SYSTEM VIDEO 2/4] Bomb placed. Waiting for the real fuse and explosion."), 5.0f);
+			TestTrue(TEXT("SYS-VIDEO-001: The bomb is visible in the PIE world"), true);
+			return true;
+		}
+
+		if (FPlatformTime::Seconds() >= State->Deadline)
+		{
+			AddError(TEXT("SYS-VIDEO-001: Timed out waiting for the visible bomb."));
+			return true;
+		}
+		return false;
+	}));
+	AddCommand(new FFunctionLatentCommand([this, State]()
+	{
+		if (!State->bBombObserved)
+		{
+			return true;
+		}
+
+		if (CountActorsAtCell(State->BoxCell, TO_FLAG(EAT::Box)) == 0)
+		{
+			UGameplayStatics::SetGlobalTimeDilation(GetPIEWorld(), 1.0f);
+			TestEqual(TEXT("SYS-VIDEO-001: The real explosion removes the adjacent box"), CountActorsAtCell(State->BoxCell, TO_FLAG(EAT::Box)), 0);
+			ShowVideoStage(TEXT("[SYSTEM VIDEO 3/4] Explosion verified: the adjacent box was destroyed."), VisualStageHoldSeconds);
+			return true;
+		}
+
+		if (FPlatformTime::Seconds() >= State->ExplosionDeadline)
+		{
+			AddError(TEXT("SYS-VIDEO-001: The target box survived the explosion timeout."));
+			return true;
+		}
+		return false;
+	}));
+	AddCommand(new FWaitLatentCommand(VisualStageHoldSeconds));
+	AddCommand(new FFunctionLatentCommand([this]()
+	{
+		ShowVideoStage(TEXT("[SYSTEM VIDEO 4/4] PASS: bomb lifecycle and world reaction completed."), VisualStageHoldSeconds);
+		return true;
+	}));
+	AddCommand(new FWaitLatentCommand(VisualStageHoldSeconds));
+	AddCommand(new FEndPlayMapCommand());
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FBmrSystemVideoLoadRecoveryTest,
+	"Bomber.SystemVisual.Video.LoadAndRecovery",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FBmrSystemVideoLoadRecoveryTest::RunTest(const FString& Parameters)
+{
+	using namespace BmrBombSystemTest;
+
+	if (!AutomationOpenMap(TEXT("/Game/Bomber/Maps/Main")))
+	{
+		AddError(TEXT("SYS-VIDEO-002: Failed to open /Game/Bomber/Maps/Main."));
+		return false;
+	}
+
+	const TSharedRef<FLoadState> State = MakeShared<FLoadState>();
+	State->Deadline = FPlatformTime::Seconds() + SetupTimeoutSeconds;
+
+	AddCommand(new FStartPIECommand(false));
+	AddCommand(new FFunctionLatentCommand([this, State]()
+	{
+		if (PrepareGameplay(*State) && SelectLoadCells(*State))
+		{
+			ShowVideoStage(TEXT("[LOAD VIDEO 1/5] Game ready. Preparing the multi-bomb load phase."), VisualStageHoldSeconds);
+			return true;
+		}
+
+		if (FPlatformTime::Seconds() >= State->Deadline)
+		{
+			AddError(TEXT("SYS-VIDEO-002: Timed out preparing the load scenario."));
+			return true;
+		}
+		return false;
+	}));
+	AddCommand(new FWaitLatentCommand(VisualStageHoldSeconds));
+	AddCommand(new FFunctionLatentCommand([State]()
+	{
+		UGameplayStatics::SetGlobalTimeDilation(GetPIEWorld(), 0.2f);
+		SpawnLoadBombs(State);
+		State->Deadline = FPlatformTime::Seconds() + ActionTimeoutSeconds;
+		return true;
+	}));
+	AddCommand(new FFunctionLatentCommand([this, State]()
+	{
+		const int32 LiveBombCount = CountBombsOnCells(State->LoadCells);
+		if (State->SpawnedBombCount == State->RequestedBombCount && LiveBombCount == State->RequestedBombCount)
+		{
+			TestEqual(TEXT("SYS-VIDEO-002: All load-test bombs are visible"), LiveBombCount, State->RequestedBombCount);
+			ShowVideoStage(FString::Printf(TEXT("[LOAD VIDEO 2/5] %d bombs are active at once."), LiveBombCount), 3.0f);
+			return true;
+		}
+
+		if (FPlatformTime::Seconds() >= State->Deadline)
+		{
+			AddError(TEXT("SYS-VIDEO-002: Timed out spawning the visible load-test bombs."));
+			return true;
+		}
+		return false;
+	}));
+	AddCommand(new FWaitLatentCommand(VisualBombHoldSeconds));
+	AddCommand(new FFunctionLatentCommand([this, State]()
+	{
+		ABmrGeneratedMap* GeneratedMap = ABmrGeneratedMap::GetGeneratedMap(State->Pawn.Get());
+		if (!GeneratedMap)
+		{
+			AddError(TEXT("SYS-VIDEO-002: Generated map became unavailable during cleanup."));
+			return true;
+		}
+
+		GeneratedMap->DestroyLevelActorsOnCells(State->LoadCells, State->Pawn.Get());
+		UGameplayStatics::SetGlobalTimeDilation(GetPIEWorld(), 1.0f);
+		State->bCleanupRequested = true;
+		State->Deadline = FPlatformTime::Seconds() + ActionTimeoutSeconds;
+		return true;
+	}));
+	AddCommand(new FFunctionLatentCommand([this, State]()
+	{
+		const int32 RemainingBombCount = CountBombsOnCells(State->LoadCells);
+		if (RemainingBombCount == 0)
+		{
+			TestEqual(TEXT("SYS-VIDEO-002: Load-test cleanup leaves no bombs"), RemainingBombCount, 0);
+			ShowVideoStage(TEXT("[LOAD VIDEO 3/5] Cleanup verified: no load-test bombs remain."), VisualStageHoldSeconds);
+			return true;
+		}
+
+		if (FPlatformTime::Seconds() >= State->Deadline)
+		{
+			AddError(FString::Printf(TEXT("SYS-VIDEO-002: Cleanup timed out with %d bomb(s) remaining."), RemainingBombCount));
+			return true;
+		}
+		return false;
+	}));
+	AddCommand(new FWaitLatentCommand(VisualStageHoldSeconds));
+	AddCommand(new FFunctionLatentCommand([this, State]()
+	{
+		UBmrMapComponent* PawnMapComponent = UBmrMapComponent::GetMapComponent(State->Pawn.Get());
+		State->TargetCell = PawnMapComponent ? PawnMapComponent->GetCell() : FBmrCell::InvalidCell;
+		if (!State->TargetCell.IsValid()
+		    || UBmrCellUtilsLibrary::IsCellHasAnyMatchingActor(State->TargetCell, TO_FLAG(~EAT::Player)))
+		{
+			AddError(TEXT("SYS-VIDEO-002: Player cell is unavailable for the recovery check."));
+			return true;
+		}
+
+		State->Pawn->SpawnBomb();
+		State->bNormalPlacementRequested = true;
+		State->Deadline = FPlatformTime::Seconds() + ActionTimeoutSeconds;
+		return true;
+	}));
+	AddCommand(new FFunctionLatentCommand([this, State]()
+	{
+		if (CountActorsAtCell(State->TargetCell, TO_FLAG(EAT::Bomb)) == 1)
+		{
+			TestEqual(TEXT("SYS-VIDEO-002: Normal placement works after load cleanup"), CountActorsAtCell(State->TargetCell, TO_FLAG(EAT::Bomb)), 1);
+			ShowVideoStage(TEXT("[LOAD VIDEO 4/5] Recovery verified: normal bomb placement still works."), 4.0f);
+			return true;
+		}
+
+		if (FPlatformTime::Seconds() >= State->Deadline)
+		{
+			AddError(TEXT("SYS-VIDEO-002: Normal bomb placement failed after visible load cleanup."));
+			return true;
+		}
+		return false;
+	}));
+	AddCommand(new FWaitLatentCommand(VisualStageHoldSeconds));
+	AddCommand(new FFunctionLatentCommand([this]()
+	{
+		ShowVideoStage(TEXT("[LOAD VIDEO 5/5] PASS: load and recovery scenario completed."), VisualStageHoldSeconds);
+		return true;
+	}));
+	AddCommand(new FWaitLatentCommand(VisualStageHoldSeconds));
 	AddCommand(new FEndPlayMapCommand());
 	return true;
 }

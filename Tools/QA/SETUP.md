@@ -33,6 +33,8 @@ The deployed script discovers test IDs from the target sheet and validates only 
 
 Close Unreal Editor, then double-click the BAT for the suite you want to run.
 
+For video evidence, open Unreal Editor yourself, open **Session Frontend > Automation**, search for `Bomber.SystemVisual.Video`, and run the two visual scenarios. They use the same real PIE interactions as the system tests, but add numbered on-screen messages and longer holds. Visual scenarios do not update Google Sheets, Jira, or Slack.
+
 Exit codes:
 
 - `0`: tests passed and Sheet update was verified

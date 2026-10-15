@@ -71,6 +71,8 @@
 
 ## 6. 증빙 자료 촬영 항목
 
+영상 촬영용 `Bomber.SystemVisual.Video` 테스트 경로를 별도로 제공한다. Unreal Editor의 **Session Frontend > Automation**에서 직접 실행하면 기존 시스템 테스트와 같은 실제 PIE 상호작용을 수행하되, 단계별 화면 메시지와 약 3초의 유지시간이 추가된다. 영상용 실행은 Google Sheets, Jira, Slack 값을 변경하지 않는다.
+
 - [ ] Unreal Automation 창에서 정상 시스템 테스트 5개가 초록색으로 완료된 화면
 - [ ] `RunBomberSystemQA.bat` 실행 완료 화면
 - [ ] Google Sheets의 시스템 테스트 결과 화면
