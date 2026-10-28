@@ -1,0 +1,124 @@
+name: Bomber QA Automation
+
+on:
+  workflow_dispatch:
+    inputs:
+      suite:
+        description: Test suite to run
+        required: true
+        default: All
+        type: choice
+        options:
+          - All
+          - Unit
+          - Integration
+          - System
+          - Acceptance
+      sheet_sync:
+        description: Update Google Sheet
+        required: true
+        default: true
+        type: boolean
+      jira_sync:
+        description: Create or update Jira for failures
+        required: true
+        default: true
+        type: boolean
+      slack_notification:
+        description: Send Slack result notification
+        required: true
+        default: true
+        type: boolean
+  schedule:
+    # GitHub cron uses UTC. 00:00 UTC is 09:00 KST.
+    - cron: '0 0 * * *'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: bomber-qa-local
+  cancel-in-progress: false
+
+jobs:
+  qa:
+    name: Run Bomber QA
+    runs-on: [self-hosted, Windows, X64, bomber-qa]
+    timeout-minutes: 120
+    env:
+      PROJECT_ROOT: D:\Projects\Bomber
+      ARTIFACT_ROOT: D:\Projects\Bomber\Saved\Automation\GitHub\${{ github.run_id }}-${{ github.run_attempt }}
+      REQUESTED_SUITE: ${{ github.event_name == 'schedule' && 'All' || inputs.suite }}
+      SHEET_SYNC: ${{ github.event_name == 'schedule' && 'true' || inputs.sheet_sync }}
+      JIRA_SYNC: ${{ github.event_name == 'schedule' && 'true' || inputs.jira_sync }}
+      SLACK_NOTIFICATION: ${{ github.event_name == 'schedule' && 'true' || inputs.slack_notification }}
+
+    steps:
+      - name: Validate local project
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if (-not (Test-Path -LiteralPath $env:PROJECT_ROOT)) {
+            throw "Project root was not found: $env:PROJECT_ROOT"
+          }
+          if (-not (Test-Path -LiteralPath (Join-Path $env:PROJECT_ROOT 'Bomber.uproject'))) {
+            throw 'Bomber.uproject was not found.'
+          }
+          if (Get-Process -Name 'UnrealEditor','UnrealEditor-Cmd' -ErrorAction SilentlyContinue) {
+            throw 'Close Unreal Editor before running unattended QA.'
+          }
+          $dirty = & git -C $env:PROJECT_ROOT status --porcelain
+          if ($LASTEXITCODE -ne 0) { throw 'Unable to inspect the local Git worktree.' }
+          if ($dirty) { throw 'The local Git worktree has uncommitted changes.' }
+          $localRevision = (& git -C $env:PROJECT_ROOT rev-parse HEAD).Trim()
+          if ($localRevision -ne $env:GITHUB_SHA) {
+            throw "Local revision $localRevision does not match workflow revision $env:GITHUB_SHA. Update the local checkout first."
+          }
+          if ($env:SHEET_SYNC -eq 'true' -and -not (Test-Path -LiteralPath (Join-Path $env:PROJECT_ROOT 'Tools\QA\qa-sheet.local.json'))) {
+            throw 'Google Sheet local configuration is missing.'
+          }
+          if (($env:JIRA_SYNC -eq 'true' -or $env:SLACK_NOTIFICATION -eq 'true') -and
+              -not (Test-Path -LiteralPath (Join-Path $env:PROJECT_ROOT 'Tools\QA\qa-integrations.local.json'))) {
+            throw 'Jira/Slack local configuration is missing.'
+          }
+
+      - name: Run requested QA suite
+        id: qa
+        shell: powershell
+        run: |
+          $runner = Join-Path $env:PROJECT_ROOT 'Tools\QA\Invoke-BomberQaAutomation.ps1'
+          $arguments = @(
+            '-NoLogo', '-NoProfile', '-ExecutionPolicy', 'Bypass',
+            '-File', $runner,
+            '-Suite', $env:REQUESTED_SUITE
+          )
+          if ($env:SHEET_SYNC -ne 'true') { $arguments += '-SkipSheetSync' }
+          if ($env:JIRA_SYNC -ne 'true') { $arguments += '-SkipJiraSync' }
+          if ($env:SLACK_NOTIFICATION -ne 'true') { $arguments += '-SkipSlackNotification' }
+          $env:BOMBER_QA_ARTIFACT_ROOT = $env:ARTIFACT_ROOT
+          $exitCode = 99
+          try {
+            & powershell.exe @arguments
+            $exitCode = $LASTEXITCODE
+          } catch {
+            Write-Error $_
+          }
+          "exit_code=$exitCode" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          exit 0
+
+      - name: Upload QA evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bomber-qa-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ env.ARTIFACT_ROOT }}
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Apply QA result
+        if: always()
+        shell: powershell
+        run: |
+          $exitCode = '${{ steps.qa.outputs.exit_code }}'
+          if (-not $exitCode) { throw 'QA runner did not return an exit code.' }
+          if ([int]$exitCode -ne 0) { exit [int]$exitCode }

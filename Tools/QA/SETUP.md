@@ -1,10 +1,12 @@
 # Bomber QA BAT setup
 
-The root BAT files run the selected suite through `UnrealEditor-Cmd.exe`, validate the new `index.json`, and send only verified results to the exact Google Sheet named `Bomber QA 테스트 케이스`.
+The root BAT files run the selected suite through the shared automation controller and `UnrealEditor-Cmd.exe`, validate the new `index.json`, and send only verified results to the exact Google Sheet named `Bomber QA 테스트 케이스`. The shared controller blocks overlapping normal BAT and GitHub Actions runs.
 
 - `RunBomberQA.bat`: `Bomber.Integration.Bomb` -> `통합 테스트 케이스`
+- `RunBomberUnitQA.bat`: `Bomber.Unit` -> `단위 테스트 케이스`
 - `RunBomberSystemQA.bat`: `Bomber.System` -> `시스템 테스트 케이스`
 - `RunBomberAcceptanceQA.bat`: `Bomber.Acceptance` -> `인수 테스트 케이스`
+- `RunBomberAllQA.bat`: runs Unit, Integration, System, and Acceptance in order
 - `RunBomberJiraFailureDemo.bat`: runs only `SYS-JIRA-FAIL-001`, updates the system sheet, creates or updates a Jira bug, and posts the failure summary to Slack
 
 `Bomber.SystemDemo.Jira.IntentionalFailure` is deliberately excluded from the normal system BAT. It will be invoked separately when validating the Jira failure pipeline.
@@ -46,3 +48,13 @@ Exit codes:
 - `4`: Jira or Slack integration failed
 
 Every validated payload is retained under `Saved/Automation/SheetSync` so a Sheet failure does not destroy the test result.
+
+## GitHub Actions automation
+
+`.github/workflows/bomber-qa-automation.yml` provides a manual **Run workflow** button and a daily schedule. The schedule is `00:00 UTC`, which is **09:00 KST**, and runs `All` suites. Manual runs can select one suite and independently enable or disable Google Sheet, Jira, and Slack integration.
+
+The workflow intentionally has no `push` or `pull_request` trigger. It uses the existing local checkout at `D:\Projects\Bomber`, never resets or pulls it automatically, and stops if Unreal Editor is open, the worktree is dirty, or the local commit differs from the workflow commit. Concurrent runs are serialized, and a local mutex prevents the BAT and GitHub workflow from running together.
+
+Runner installation and registration are deferred. When it is configured later, register a Windows x64 self-hosted runner with the custom label `bomber-qa`. Until that runner is online, manual or scheduled jobs will remain queued. The workflow file must also be merged into the repository's default branch before the daily schedule and the normal **Run workflow** button are available there.
+
+GitHub evidence is copied to `Saved\Automation\GitHub\<run-id>-<attempt>` and uploaded as a 14-day workflow artifact. Local secret files remain ignored by Git and are read only on the runner PC.

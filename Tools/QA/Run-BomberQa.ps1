@@ -1,6 +1,6 @@
 ﻿[CmdletBinding()]
 param(
-    [ValidateSet('Integration', 'System', 'Acceptance')]
+    [ValidateSet('Unit', 'Integration', 'System', 'Acceptance')]
     [string]$Suite = 'Integration',
     [switch]$JiraFailureDemo,
     [switch]$SkipSheetSync,
@@ -22,6 +22,42 @@ $integrationsConfigPath = Join-Path $scriptDir 'qa-integrations.local.json'
 $expectedSpreadsheetId = '1UGXPM7sho_VNmtClY1Nrd-pBGjv7YkrBoXlWgwz534g'
 $expectedSpreadsheetTitle = 'Bomber QA 테스트 케이스'
 $suiteDefinitions = @{
+    Unit = [pscustomobject]@{
+        SheetName = '단위 테스트 케이스'
+        TestFilter = 'Bomber.Unit.'
+        Tests = @(
+            [pscustomobject]@{
+                TestId = 'UNIT-CELL-001'
+                AutomationPath = 'Bomber.Unit.Cell.Construction'
+                PassText = '셀 좌표 생성 및 반올림 확인'
+            },
+            [pscustomobject]@{
+                TestId = 'UNIT-CELL-002'
+                AutomationPath = 'Bomber.Unit.Cell.Validity'
+                PassText = '정상 셀과 InvalidCell 유효성 판정 확인'
+            },
+            [pscustomobject]@{
+                TestId = 'UNIT-CELL-003'
+                AutomationPath = 'Bomber.Unit.Cell.Equality'
+                PassText = '셀 좌표 동등성 및 부등성 비교 확인'
+            },
+            [pscustomobject]@{
+                TestId = 'UNIT-CELL-004'
+                AutomationPath = 'Bomber.Unit.Cell.Arithmetic'
+                PassText = '셀 덧셈·뺄셈 및 배율 연산 확인'
+            },
+            [pscustomobject]@{
+                TestId = 'UNIT-CELL-005'
+                AutomationPath = 'Bomber.Unit.Cell.Direction'
+                PassText = '방향 열거형과 셀 좌표 변환 확인'
+            },
+            [pscustomobject]@{
+                TestId = 'UNIT-SMOKE-001'
+                AutomationPath = 'Bomber.Unit.Smoke'
+                PassText = 'BomberTests 모듈 기본 실행 확인'
+            }
+        )
+    }
     Integration = [pscustomobject]@{
         SheetName = '통합 테스트 케이스'
         TestFilter = 'Bomber.Integration.Bomb'

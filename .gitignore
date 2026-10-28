@@ -430,6 +430,8 @@ DerivedDataCache
 *.bat
 *.cmd
 !RunBomberQA.bat
+!RunBomberUnitQA.bat
+!RunBomberAllQA.bat
 !RunBomberSystemQA.bat
 !RunBomberAcceptanceQA.bat
 !RunBomberJiraFailureDemo.bat

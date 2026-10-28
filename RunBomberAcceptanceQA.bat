@@ -3,7 +3,7 @@ setlocal
 chcp 65001 >nul
 
 set "PROJECT_ROOT=%~dp0"
-set "RUNNER=%PROJECT_ROOT%Tools\QA\Run-BomberQa.ps1"
+set "RUNNER=%PROJECT_ROOT%Tools\QA\Invoke-BomberQaAutomation.ps1"
 
 if not exist "%RUNNER%" (
     echo [ERROR] QA runner was not found: %RUNNER%
