@@ -431,6 +431,7 @@ DerivedDataCache
 *.cmd
 !RunBomberQA.bat
 !RunBomberSystemQA.bat
+!RunBomberAcceptanceQA.bat
 !RunBomberJiraFailureDemo.bat
 
 # Bomber QA local secret

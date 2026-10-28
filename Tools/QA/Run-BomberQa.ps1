@@ -1,6 +1,6 @@
 ﻿[CmdletBinding()]
 param(
-    [ValidateSet('Integration', 'System')]
+    [ValidateSet('Integration', 'System', 'Acceptance')]
     [string]$Suite = 'Integration',
     [switch]$JiraFailureDemo,
     [switch]$SkipSheetSync,
@@ -66,6 +66,27 @@ $suiteDefinitions = @{
                 TestId = 'SYS-RECOVERY-001'
                 AutomationPath = 'Bomber.System.Load.PostLoadRecovery'
                 PassText = '부하 정리 후 일반 폭탄 설치 기능 복구 확인'
+            }
+        )
+    }
+    Acceptance = [pscustomobject]@{
+        SheetName = '인수 테스트 케이스'
+        TestFilter = 'Bomber.Acceptance.'
+        Tests = @(
+            [pscustomobject]@{
+                TestId = 'ACC-GAME-001'
+                AutomationPath = 'Bomber.Acceptance.Game.StartPlayableMatch'
+                PassText = '게임 월드, 플레이 가능 캐릭터 및 폭탄 기능 준비 상태 확인'
+            },
+            [pscustomobject]@{
+                TestId = 'ACC-BOMB-001'
+                AutomationPath = 'Bomber.Acceptance.Bomb.ClearObstacle'
+                PassText = '사용자 폭탄 설치·폭발 및 장애물 제거 흐름 확인'
+            },
+            [pscustomobject]@{
+                TestId = 'ACC-RESULT-001'
+                AutomationPath = 'Bomber.Acceptance.Round.ShowVictoryResult'
+                PassText = '승리 상태 변경 및 게임 결과 데이터 반영 확인'
             }
         )
     }

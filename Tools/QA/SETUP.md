@@ -4,6 +4,7 @@ The root BAT files run the selected suite through `UnrealEditor-Cmd.exe`, valida
 
 - `RunBomberQA.bat`: `Bomber.Integration.Bomb` -> `통합 테스트 케이스`
 - `RunBomberSystemQA.bat`: `Bomber.System` -> `시스템 테스트 케이스`
+- `RunBomberAcceptanceQA.bat`: `Bomber.Acceptance` -> `인수 테스트 케이스`
 - `RunBomberJiraFailureDemo.bat`: runs only `SYS-JIRA-FAIL-001`, updates the system sheet, creates or updates a Jira bug, and posts the failure summary to Slack
 
 `Bomber.SystemDemo.Jira.IntentionalFailure` is deliberately excluded from the normal system BAT. It will be invoked separately when validating the Jira failure pipeline.
