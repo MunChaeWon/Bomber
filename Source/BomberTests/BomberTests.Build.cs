@@ -13,7 +13,10 @@ public class BomberTests : ModuleRules
 			"Core",
 			"CoreUObject",
 			"Engine",
-			"Bomber"
+			"Bomber",
+			"GameplayAbilities",
+			"MyUtils",
+			"UnrealEd"
 		});
 	}
 }

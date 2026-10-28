@@ -429,6 +429,16 @@ DerivedDataCache
 *.sh
 *.bat
 *.cmd
+!RunBomberQA.bat
+!RunBomberUnitQA.bat
+!RunBomberAllQA.bat
+!RunBomberSystemQA.bat
+!RunBomberAcceptanceQA.bat
+!RunBomberJiraFailureDemo.bat
+
+# Bomber QA local secret
+Tools/QA/qa-sheet.local.json
+Tools/QA/qa-integrations.local.json
 
 # Ignore auto-generated and dialogue-specific localization settings
 Config/Localization/*
