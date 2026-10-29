@@ -2,6 +2,7 @@
 param(
     [ValidateSet('Unit', 'Integration', 'System', 'Acceptance', 'All')]
     [string]$Suite = 'All',
+    [switch]$JiraFailureDemo,
     [switch]$SkipSheetSync,
     [switch]$SkipJiraSync,
     [switch]$SkipSlackNotification
@@ -18,6 +19,9 @@ $suiteRunner = Join-Path $scriptDir 'Run-BomberQa.ps1'
 $automationRoot = Join-Path $projectRoot 'Saved\Automation'
 $logRoot = Join-Path $projectRoot 'Saved\Logs'
 $suiteNames = if ($Suite -eq 'All') { @('Unit', 'Integration', 'System', 'Acceptance') } else { @($Suite) }
+if ($JiraFailureDemo -and $Suite -ne 'System') {
+    throw 'JiraFailureDemo requires Suite System.'
+}
 $runKey = if ($env:GITHUB_RUN_ID) {
     $attempt = if ($env:GITHUB_RUN_ATTEMPT) { $env:GITHUB_RUN_ATTEMPT } else { '1' }
     "$($env:GITHUB_RUN_ID)-$attempt"
@@ -72,6 +76,7 @@ try {
         if ($SkipSheetSync) { $arguments += '-SkipSheetSync' }
         if ($SkipJiraSync) { $arguments += '-SkipJiraSync' }
         if ($SkipSlackNotification) { $arguments += '-SkipSlackNotification' }
+        if ($JiraFailureDemo) { $arguments += '-JiraFailureDemo' }
 
         & powershell.exe @arguments
         $exitCode = $LASTEXITCODE
@@ -109,14 +114,19 @@ try {
         startedAt = $automationStarted.ToString('o')
         finishedAt = (Get-Date).ToString('o')
         overallExitCode = $overallExitCode
+        intentionalFailureDemo = [bool]$JiraFailureDemo
         suites = $results
     }
     $summary | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $artifactRoot 'summary.json') -Encoding UTF8
 
     if ($env:GITHUB_STEP_SUMMARY) {
-        $markdown = @(
-            '# Bomber QA result',
-            '',
+        $summaryTitle = if ($JiraFailureDemo) { '# Bomber QA intentional failure demo' } else { '# Bomber QA result' }
+        $markdown = @($summaryTitle, '')
+        if ($JiraFailureDemo) {
+            $markdown += '> This run is expected to fail. It validates the Google Sheet, Jira, Slack, and evidence pipeline.'
+            $markdown += ''
+        }
+        $markdown += @(
             '| Suite | Exit code | Report |',
             '|---|---:|---|'
         )

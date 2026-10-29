@@ -11,8 +11,9 @@ on:
         options:
           - TestOnly
           - BuildAndRegression
+          - FailurePipelineDemo
       suite:
-        description: Suite for TestOnly mode (BuildAndRegression always runs All)
+        description: Suite for TestOnly mode (other modes choose their required suite)
         required: true
         default: All
         type: choice
@@ -124,7 +125,13 @@ jobs:
         shell: powershell
         run: |
           $runner = Join-Path $env:PROJECT_ROOT 'Tools\QA\Invoke-BomberQaAutomation.ps1'
-          $suite = if ($env:EXECUTION_MODE -eq 'BuildAndRegression') { 'All' } else { $env:REQUESTED_SUITE }
+          $suite = if ($env:EXECUTION_MODE -eq 'BuildAndRegression') {
+            'All'
+          } elseif ($env:EXECUTION_MODE -eq 'FailurePipelineDemo') {
+            'System'
+          } else {
+            $env:REQUESTED_SUITE
+          }
           $arguments = @(
             '-NoLogo', '-NoProfile', '-ExecutionPolicy', 'Bypass',
             '-File', $runner,
@@ -133,6 +140,7 @@ jobs:
           if ($env:SHEET_SYNC -ne 'true') { $arguments += '-SkipSheetSync' }
           if ($env:JIRA_SYNC -ne 'true') { $arguments += '-SkipJiraSync' }
           if ($env:SLACK_NOTIFICATION -ne 'true') { $arguments += '-SkipSlackNotification' }
+          if ($env:EXECUTION_MODE -eq 'FailurePipelineDemo') { $arguments += '-JiraFailureDemo' }
           $env:BOMBER_QA_ARTIFACT_ROOT = $env:ARTIFACT_ROOT
           $exitCode = 99
           try {
