@@ -57,8 +57,11 @@ Manual runs also provide two execution modes:
 
 - `TestOnly`: runs the selected suite against the already-built local revision.
 - `BuildAndRegression`: must be dispatched from `master`; verifies a clean local `master`, fetches and fast-forwards it to the exact workflow commit, builds `BomberEditor` (including `BomberTests`), and then runs `All` suites. Build logs and a JSON build summary are uploaded with the QA evidence.
+- `FailurePipelineDemo`: runs only the isolated `SYS-JIRA-FAIL-001` intentional failure. With the integration checkboxes enabled, it records `Fail` in the system sheet, creates or updates the matching Jira issue, sends a Slack failure summary, uploads evidence, and intentionally finishes the GitHub run in red.
 
 `BuildAndRegression` never resets local files or overwrites a dirty worktree. It stops if the local checkout has changes, is not on `master`, cannot fast-forward, or does not match the dispatched GitHub commit.
+
+`FailurePipelineDemo` is never included in `TestOnly`, `BuildAndRegression`, or the daily schedule. Its red GitHub conclusion is expected evidence that the failure route was exercised, not a regression failure in the normal suites.
 
 The workflow intentionally has no `push` or `pull_request` trigger. It uses the existing local checkout at `D:\Projects\Bomber`, never resets or pulls it automatically, and stops if Unreal Editor is open, the worktree is dirty, or the local commit differs from the workflow commit. Concurrent runs are serialized, and a local mutex prevents the BAT and GitHub workflow from running together.
 
