@@ -53,6 +53,13 @@ Every validated payload is retained under `Saved/Automation/SheetSync` so a Shee
 
 `.github/workflows/bomber-qa-automation.yml` provides a manual **Run workflow** button and a daily schedule. The schedule is `00:00 UTC`, which is **09:00 KST**, and runs `All` suites. Manual runs can select one suite and independently enable or disable Google Sheet, Jira, and Slack integration.
 
+Manual runs also provide two execution modes:
+
+- `TestOnly`: runs the selected suite against the already-built local revision.
+- `BuildAndRegression`: must be dispatched from `master`; verifies a clean local `master`, fetches and fast-forwards it to the exact workflow commit, builds `BomberEditor` (including `BomberTests`), and then runs `All` suites. Build logs and a JSON build summary are uploaded with the QA evidence.
+
+`BuildAndRegression` never resets local files or overwrites a dirty worktree. It stops if the local checkout has changes, is not on `master`, cannot fast-forward, or does not match the dispatched GitHub commit.
+
 The workflow intentionally has no `push` or `pull_request` trigger. It uses the existing local checkout at `D:\Projects\Bomber`, never resets or pulls it automatically, and stops if Unreal Editor is open, the worktree is dirty, or the local commit differs from the workflow commit. Concurrent runs are serialized, and a local mutex prevents the BAT and GitHub workflow from running together.
 
 Runner installation and registration are deferred. When it is configured later, register a Windows x64 self-hosted runner with the custom label `bomber-qa`. Until that runner is online, manual or scheduled jobs will remain queued. The workflow file must also be merged into the repository's default branch before the daily schedule and the normal **Run workflow** button are available there.

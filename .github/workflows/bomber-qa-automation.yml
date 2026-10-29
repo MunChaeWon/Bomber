@@ -3,8 +3,16 @@ name: Bomber QA Automation
 on:
   workflow_dispatch:
     inputs:
+      execution_mode:
+        description: Test only, or update/build and run full regression
+        required: true
+        default: TestOnly
+        type: choice
+        options:
+          - TestOnly
+          - BuildAndRegression
       suite:
-        description: Test suite to run
+        description: Suite for TestOnly mode (BuildAndRegression always runs All)
         required: true
         default: All
         type: choice
@@ -48,6 +56,7 @@ jobs:
     env:
       PROJECT_ROOT: D:\Projects\Bomber
       ARTIFACT_ROOT: D:\Projects\Bomber\Saved\Automation\GitHub\${{ github.run_id }}-${{ github.run_attempt }}
+      EXECUTION_MODE: ${{ github.event_name == 'schedule' && 'TestOnly' || inputs.execution_mode }}
       REQUESTED_SUITE: ${{ github.event_name == 'schedule' && 'All' || inputs.suite }}
       SHEET_SYNC: ${{ github.event_name == 'schedule' && 'true' || inputs.sheet_sync }}
       JIRA_SYNC: ${{ github.event_name == 'schedule' && 'true' || inputs.jira_sync }}
@@ -70,9 +79,28 @@ jobs:
           $dirty = & git -C $env:PROJECT_ROOT status --porcelain
           if ($LASTEXITCODE -ne 0) { throw 'Unable to inspect the local Git worktree.' }
           if ($dirty) { throw 'The local Git worktree has uncommitted changes.' }
+          $localBranch = (& git -C $env:PROJECT_ROOT branch --show-current).Trim()
           $localRevision = (& git -C $env:PROJECT_ROOT rev-parse HEAD).Trim()
-          if ($localRevision -ne $env:GITHUB_SHA) {
-            throw "Local revision $localRevision does not match workflow revision $env:GITHUB_SHA. Update the local checkout first."
+          if ($env:EXECUTION_MODE -eq 'BuildAndRegression') {
+            if ($env:GITHUB_REF_NAME -ne 'master') {
+              throw 'BuildAndRegression must be dispatched from the master branch.'
+            }
+            if ($localBranch -ne 'master') {
+              throw "BuildAndRegression requires the local master branch. Current branch: $localBranch"
+            }
+            & git -C $env:PROJECT_ROOT fetch origin master
+            if ($LASTEXITCODE -ne 0) { throw 'Unable to fetch origin/master.' }
+            $remoteRevision = (& git -C $env:PROJECT_ROOT rev-parse origin/master).Trim()
+            if ($remoteRevision -ne $env:GITHUB_SHA) {
+              throw "origin/master $remoteRevision does not match workflow revision $env:GITHUB_SHA."
+            }
+            if ($localRevision -ne $remoteRevision) {
+              & git -C $env:PROJECT_ROOT merge --ff-only origin/master
+              if ($LASTEXITCODE -ne 0) { throw 'Local master could not be fast-forwarded safely.' }
+              $localRevision = (& git -C $env:PROJECT_ROOT rev-parse HEAD).Trim()
+            }
+          } elseif ($localRevision -ne $env:GITHUB_SHA) {
+            throw "Local revision $localRevision does not match workflow revision $env:GITHUB_SHA. Use BuildAndRegression or update the local checkout first."
           }
           if ($env:SHEET_SYNC -eq 'true' -and -not (Test-Path -LiteralPath (Join-Path $env:PROJECT_ROOT 'Tools\QA\qa-sheet.local.json'))) {
             throw 'Google Sheet local configuration is missing.'
@@ -82,15 +110,25 @@ jobs:
             throw 'Jira/Slack local configuration is missing.'
           }
 
+      - name: Build BomberEditor for regression
+        if: env.EXECUTION_MODE == 'BuildAndRegression'
+        shell: powershell
+        run: |
+          $buildScript = Join-Path $env:PROJECT_ROOT 'Tools\QA\Build-BomberEditor.ps1'
+          $buildArtifactRoot = Join-Path $env:ARTIFACT_ROOT 'Build'
+          & powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File $buildScript -OutputDirectory $buildArtifactRoot
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
       - name: Run requested QA suite
         id: qa
         shell: powershell
         run: |
           $runner = Join-Path $env:PROJECT_ROOT 'Tools\QA\Invoke-BomberQaAutomation.ps1'
+          $suite = if ($env:EXECUTION_MODE -eq 'BuildAndRegression') { 'All' } else { $env:REQUESTED_SUITE }
           $arguments = @(
             '-NoLogo', '-NoProfile', '-ExecutionPolicy', 'Bypass',
             '-File', $runner,
-            '-Suite', $env:REQUESTED_SUITE
+            '-Suite', $suite
           )
           if ($env:SHEET_SYNC -ne 'true') { $arguments += '-SkipSheetSync' }
           if ($env:JIRA_SYNC -ne 'true') { $arguments += '-SkipJiraSync' }
